@@ -40,7 +40,8 @@ colnames(otu_table)[550] <- "TJPBXFMB11Inoc"
 otutable2 <- otu_table[rowSums(otu_table > 0) > 1,]
 
 #square root transform
-otutable3 <- sqrt(otutable2)
+#otutable3 <- sqrt(otutable2)
+otutable3 <- otutable2
 
 #convert to relative abundance
 otutable4 <- sweep(otutable3,2,colSums(otutable3),`/`)  #OTU table is 142 taxa and 258 samples
@@ -75,11 +76,11 @@ Ileum <- rownames(mapping[(mapping$Tissue =="Ileum"),])
 Trachea <- rownames(mapping[mapping$Tissue =="Trachea",])
 Ceca <- rownames(mapping[mapping$Tissue =="Ceca",])
 
-NoInoc <- row.names(mapping[mapping$Treatment == "1_NoInoc",])
-FMB11 <- row.names(mapping[mapping$Treatment == "3_FMB11GroGel",])
-BMD <- row.names(mapping[mapping$Treatment == "5_BMD",])
-TJPbx <- row.names(mapping[mapping$Treatment == "4_TJPbxGroGel",])
-GroGel <- row.names(mapping[mapping$Treatment == "2_GroGelNoPbx",])
+NoInoc <- row.names(mapping[mapping$Treatment2 == "No_Inoc",])
+FMB11 <- row.names(mapping[mapping$Treatment2 == "FMB11",])
+BMD <- row.names(mapping[mapping$Treatment2 == "BMD",])
+TJPbx <- row.names(mapping[mapping$Treatment2 == "TJPbx",])
+GroGel <- row.names(mapping[mapping$Treatment2 == "GroGel",])
 
 Day0 <- row.names(mapping[mapping$Treatment == "D0Pool",])
 Ileum <- Ileum[which(! Ileum == Day0)]
@@ -102,7 +103,8 @@ for(i in 1:length(Days_avail)){
   Days <- c(Days, Day_samples)
   names(Days)[i] <- working_day
 }
-Days <- Days[2:(length(Days)-1)]
+keep_days <- c("D03", "D06", "D13")
+Days <- Days[names(Days) %in% keep_days]
 
 Bodysites <- list(Ileum, Trachea, Ceca)
 names(Bodysites) <- c("Ileum", "Trachea", "Ceca")

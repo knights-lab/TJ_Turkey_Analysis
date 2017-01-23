@@ -9,3 +9,7 @@ source("bin/beta.div.r")
 source("bin/pcoa.r")
 
 source("bin/taxa.sum.r")
+
+source("bin/diff_taxa.r")
+
+source("bin/weight_treatment.r")

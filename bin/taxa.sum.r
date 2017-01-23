@@ -91,7 +91,7 @@ for(k in 1:length(Bodysites)){
 }
 
 union <- samples_no_con
-cutoff <- 0.20
+cutoff <- 0.05
 otu1 <- make_taxa_sums(otu, union, cutoff)
 
 plot_title <- "Effect of Day, regardless of treatment"
@@ -112,14 +112,14 @@ taxa_plot <- ggplot(otu1, aes(x = Collection_Day , y = Relative_Abundance)) +
   scale_fill_manual(name= names(taxa_cols), values= taxa_cols)
 
 #assign pdf name for plot
-name <- "Day_Facet_Tissue"
+name <- "Day_Facet_Tissue.pdf"
 file_path <- paste(taxa_dir, name, sep='')
 pdf(file_path, height=4,width=11)
 print(taxa_plot)
 dev.off()
 
 #Compare treatment to input
-cutoff <- 0.1
+cutoff <- 0.05
 for(i in 1:length(Treatments)){
   treatment_plot <- Treatments[[i]]
   input_plot <- Inputs[[i]]

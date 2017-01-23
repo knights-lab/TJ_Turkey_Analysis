@@ -27,7 +27,10 @@ dir.create(paste(main_fp, "taxa_sum/two", sep='/'))
 dir.create(paste(main_fp, "taxa_sum/three", sep='/'))
 
 dir.create(paste(main_fp, "diff_taxa", sep='/'))
-dir.create(paste(main_fp, "diff_taxa/one", sep='/'))
+dir.create(paste(main_fp, "diff_taxa/antibiotics", sep='/'))
+dir.create(paste(main_fp, "diff_taxa/FMB11", sep='/'))
+dir.create(paste(main_fp, "diff_taxa/TJPbx", sep='/'))
+
 
 
 

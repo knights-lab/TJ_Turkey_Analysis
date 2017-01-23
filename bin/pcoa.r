@@ -75,3 +75,31 @@ for(i in 1:length(Bodysites)){
   pcoa_func(PCOA, pcoa_dir)
 }
 
+##Plot day and bodysite separate###
+
+for(i in 1:length(Bodysites)){
+  body <- Bodysites[[i]]
+  for(k in 1:length(Days)){
+    day <- Days[[k]]
+    samples <- intersect(body,day)
+    beta_table <-  beta_div[samples, samples]
+  
+    PCOA <- pcoa(beta_table)$vectors
+    for(c in 1:ncol(PCOA)){
+      colnames(PCOA)[c] <- paste("PC",c, sep="")
+    }
+    PCOA <- cbind(PCOA, rownames(PCOA))
+    colnames(PCOA)[ncol(PCOA)] <- "SampleID"
+  
+    PCOA <- merge(PCOA, mapping2, by="SampleID")
+    PCOA$PC1 <- as.numeric(levels(PCOA$PC1))[PCOA$PC1]
+    PCOA$PC2 <- as.numeric(levels(PCOA$PC2))[PCOA$PC2]
+    PCOA <- as.data.frame(PCOA)
+  
+    dir <- paste("beta_div/BrayCurtis/pcoa", names(Bodysites[i]), names(Days[k]), sep="/")
+    pcoa_dir <- paste(main_fp, dir, sep='/')
+    dir.create(pcoa_dir)
+  
+    pcoa_func(PCOA, pcoa_dir)
+  }
+}
