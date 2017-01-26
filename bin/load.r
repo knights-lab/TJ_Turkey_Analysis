@@ -8,6 +8,7 @@ library('beeswarm')
 library('ape')
 library("grid")
 library("gridExtra")
+library("cowplot")
 
 source('bin/output_dir.r')
 
@@ -15,7 +16,10 @@ source('bin/output_dir.r')
 data_dir <- "data/"
 otu_fp <- paste(data_dir, "Turkey_1000_Taxa.txt", sep='')
 map_fp <- paste(data_dir, "Turkey_mapping.txt", sep='')
-alpha_fp <- paste(data_dir, "Alpha_Div1000.txt", sep='')
+alpha_fp <- paste(data_dir, "Turkey_Alpha_RA.txt", sep='')
+bray_fp <- paste(data_dir, "bray_curtis_Turkey_1000_RA.txt", sep='')
+wuni_fp <- paste(data_dir, "weighted_unifrac_Turkey_1000_RA.txt", sep='')
+uni_fp <- paste(data_dir, "unifrac_Turkey_1000_RA.txt", sep='')
 
 ####Load OTU table and metadata####
 #Table is pre-filtered to keep samples with >= 1000 counts
@@ -44,7 +48,21 @@ otutable2 <- otu_table[rowSums(otu_table > 0) > 1,]
 otutable3 <- otutable2
 
 #convert to relative abundance
-otutable4 <- sweep(otutable3,2,colSums(otutable3),`/`)  #OTU table is 142 taxa and 258 samples
+otutable4 <- sweep(otutable3,2,colSums(otutable3),`/`)  #OTU table is 5212 taxa and 551 samples
+
+#Print this table as the normalized OTU table, multiplied by 10000 for beta div problems
+otutable5 <- round(otutable4 * 100000)
+sink("data/Turkey_1000_RA.txt")
+cat("#OTUID")
+write.table(otutable5, 
+            sep="\t", #tell R to make is tab-delimited
+            quote=F, #tell R not to put quotes
+            col.names=NA) #formats the column headers properly
+sink()
+#To convert to biom later: biom convert -i Turkey_1000_RA.txt -o Turkey_1000_RA.biom --table-type "OTU table" --to-json (qiime 1.9.0)
+#On MSI:
+# beta_diversity.py -i Turkey_1000_RA.biom -o Turkey_Beta1 -m bray_curtis,weighted_unifrac,unifrac -t ../shared/97_otus.tree
+# alpha_diversity.py -i Turkey_1000_RA.biom -o Turkey_Alpha_RA.txt -m chao1,observed_species,shannon,simpson,PD_whole_tree -t ../shared/97_otus.tree
 
 ####Filter the metadata to keep only samples in the new otutable
 ids_keep <- intersect(rownames(metadata), colnames(otutable4))
@@ -141,5 +159,5 @@ samples_no_con <- c(NoInoc,GroGel, BMD, FMB11, TJPbx)
 
 ####Set Colors####
 
-cols <- brewer.pal(7,'Paired')
+cols <- brewer.pal(8,'Dark2')
 cols2 <- colorRampPalette(cols)
