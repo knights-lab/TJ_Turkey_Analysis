@@ -1,5 +1,4 @@
 #Calculate Beta Div
-beta_div <- as.matrix(vegdist(t(taxa_table), method = "bray"))
 
 beta_func <- function(beta_div, control, test_set, beta_dir){
   for(i in 1:length(test_set)){
@@ -65,7 +64,7 @@ beta_func <- function(beta_div, control, test_set, beta_dir){
         #make beta div box plots
         title <- sprintf('%s, %s, %s',pbx, body, day)
         boxplot(sets_test,
-                xlab='',ylab='Bray Curtis', main=title,
+                xlab='',ylab='Unifrac', main=title,
                 col=cols2(3))
         dev.off()
       }
@@ -83,30 +82,34 @@ beta_func <- function(beta_div, control, test_set, beta_dir){
 
 #### Test Treatment vs Control, account for body site and day####
 
+#### Test PBX vs Control, account for body site and day####
 #set output directory
-beta_dir <- paste(main_fp, "beta_div/BrayCurtis/one/", sep='/')
+beta_dir <- paste(main_fp, "beta_div/Unifrac/pbx_con/", sep='/')
 #make stats file
 file_name <- paste(beta_dir, "Beta_Stats.txt", sep='')
 sink(file_name)
 sink()
 
-###Pbx vs control###
+##Set variables
 test_set <- Pbx
-control <- GroGel
-
+control_list <- list(GroGel)
+names(control_list) <- c("GroGel")
+beta_div <- uni
+#Run
 beta_func(beta_div, control, test_set, beta_dir)
 
+#### Test PBX vs Control, account for body site and day####
 #set output directory
-beta_dir <- paste(main_fp, "beta_div/BrayCurtis/two/", sep='/')
+beta_dir <- paste(main_fp, "beta_div/Unifrac/abx_con/", sep='/')
 #make stats file
 file_name <- paste(beta_dir, "Beta_Stats.txt", sep='')
 sink(file_name)
 sink()
 
-###Pbx vs control###
+##Set variables
 test_set <- list(BMD)
 names(test_set) <- c("BMD")
-control <- NoInoc
-
+control_list <- list(NoInoc)
+names(control_list) <- c("NoInoc")
+#Run
 beta_func(beta_div, control, test_set, beta_dir)
-

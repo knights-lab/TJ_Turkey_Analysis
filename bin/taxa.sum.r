@@ -59,7 +59,7 @@ for(k in 1:length(Bodysites)){
     day <- names(Days[m])
     union <- intersect(body_test, day_test)
     otu1 <- make_taxa_sums(otu, union, cutoff)
-    otu1$Treatment <- factor(otu1$Treatment2, levels= c("No_Inoc", "BMD", "GroGel", "TJPbx", "FMB11"))
+    otu1$Treatment2 <- factor(otu1$Treatment2, levels= c("No_Inoc", "GroGel", "TJPbx", "FMB11", "BMD"))
     
     #Make plot
     plot_title <- sprintf('%s, %s',body, day)
@@ -130,39 +130,19 @@ for(i in 1:length(Treatments)){
   taxa_plot1 <- ggplot(otu1, aes(x = SampleID , y = Relative_Abundance)) + 
     geom_bar(stat="identity",position="fill", aes(fill=Taxa)) +
     facet_wrap(facets=~Collection_Day, scales = "free_x", nrow=1) +
-    theme_bw() +
-    theme(panel.background = element_blank(), 
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          legend.title = element_blank(),
-          legend.key.size = unit(0.2, "in"),
-          legend.text = element_text(size=5),
-          legend.position = 'bottom',
-          axis.text = element_text(size=5),
-          axis.text.x = element_blank(),
-          axis.title = element_text(size=8)) + 
-    guides(fill=guide_legend(nrow=6)) +
-    scale_fill_manual(name= names(taxa_cols), values= taxa_cols)
+    scale_fill_manual(values= taxa_cols)
   
   taxa_plot2 <- ggplot(otu2, aes(x = SampleID , y = Relative_Abundance)) + 
     geom_bar(stat="identity",position="fill", aes(fill=Taxa)) +
-    theme_bw() +
-    theme(panel.background = element_blank(), 
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          legend.title = element_blank(),
-          legend.key.size = unit(0.2, "in"),
-          legend.text = element_text(size=5),
-          legend.position = 'bottom',
-          axis.text = element_text(size=5),
-          axis.title = element_text(size=8)) + 
-    guides(fill=guide_legend(nrow=6)) +
-    scale_fill_manual(name= names(taxa_cols), values= taxa_cols)
+    scale_fill_manual(values= taxa_cols)
 
   #assign pdf name for plot
   name <- paste(plot_title, ".pdf", sep="")
   file_path <- paste(taxa_dir, name, sep='')
-  pdf(file_path, height=4,width=11)
-  grid.arrange(taxa_plot2, taxa_plot1, ncol=2, nrow=1)
-  dev.off()
+  
+  plot_together <- plot_grid(taxa_plot2, taxa_plot1, rel_widths = c(1,5), 
+                        labels=c("input", "samples"), vjust=-0.5, hjust=-0.1,ncol = 3)
+  save_plot(file_path, plot_together,
+            ncol = 3,
+            base_aspect_ratio = 1.8)
 }

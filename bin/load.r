@@ -124,8 +124,8 @@ for(i in 1:length(Days_avail)){
 keep_days <- c("D03", "D06", "D13")
 Days <- Days[names(Days) %in% keep_days]
 
-Bodysites <- list(Ileum, Trachea, Ceca)
-names(Bodysites) <- c("Ileum", "Trachea", "Ceca")
+Bodysites <- list(Trachea, Ileum, Ceca)
+names(Bodysites) <- c("Trachea", "Ileum", "Ceca")
 
 Pbx <- list(FMB11, TJPbx)
 names(Pbx) <- c("FMB11", "TJPbx")

@@ -4,6 +4,11 @@ source("bin/diff.test.r")
 #set output dir
 diff_dir <- paste(main_fp, "diff_taxa/antibiotics", sep='/')
 
+#Make a table with taxonomy as the rownames
+taxonomy3 <- taxonomy[rownames(otutable4),]
+working_table <- as.matrix(otutable4)
+rownames(working_table) <- taxonomy3$V2
+
 #Set up tests to run
 test.ixs <- list(Antibiotics, NoInoc)
 names(test.ixs) <- c("Antibiotic", "NoInoc")
@@ -26,7 +31,7 @@ for(i in 1:length(Bodysites)){
         if(length(set1) > 2 && length(set2) > 2){
           full_set <- c(set1, set2)
           #keep taxa and the samples you are testing
-          test_table <- t(taxa_table[,full_set,drop=F])
+          test_table <- t(working_table[,full_set,drop=F])
           #Keep taxa that have at least one count
           test_table <- test_table[,colSums(test_table)>0, drop=F]
           map_test <- mapping[full_set,]
@@ -97,7 +102,7 @@ for(i in 1:length(Bodysites)){
         if(length(set1) > 2 && length(set2) > 2){
           full_set <- c(set1, set2)
           #keep taxa and the samples you are testing
-          test_table <- t(taxa_table[,full_set,drop=F])
+          test_table <- t(working_table[,full_set,drop=F])
           #Keep taxa that have at least one count
           test_table <- test_table[,colSums(test_table)>0, drop=F]
           map_test <- mapping[full_set,]
@@ -168,7 +173,7 @@ for(i in 1:length(Bodysites)){
         if(length(set1) > 2 && length(set2) > 2){
           full_set <- c(set1, set2)
           #keep taxa and the samples you are testing
-          test_table <- t(taxa_table[,full_set,drop=F])
+          test_table <- t(working_table[,full_set,drop=F])
           #Keep taxa that have at least one count
           test_table <- test_table[,colSums(test_table)>0, drop=F]
           map_test <- mapping[full_set,]

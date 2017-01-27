@@ -58,10 +58,10 @@ alpha_func <- function(alpha_test, control_list, test_set, alpha_dir, color_by){
 }
 
 
-#### Test Treatment vs Control, account for body site and day####
+#### Test PBX vs Control, account for body site and day####
 color_by <- "Treatment"
 #set output directory
-alpha_dir <- paste(main_fp, "alpha_div/one/", sep='/')
+alpha_dir <- paste(main_fp, "alpha_div/pbx_con/", sep='/')
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -70,12 +70,13 @@ sink()
 test_set <- Pbx
 control_list <- list(GroGel)
 names(control_list) <- c("GroGel")
-alpha_test <- "shannon"
+alpha_test <- "PD_whole_tree"
 
 alpha_func(alpha_test, control_list, test_set, alpha_dir, color_by)
 
+#### Test ABX vs Control, account for body site and day####
 #set output directory
-alpha_dir <- paste(main_fp, "alpha_div/two/", sep='/')
+alpha_dir <- paste(main_fp, "alpha_div/abx_con/", sep='/')
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -85,14 +86,13 @@ test_set <- list(BMD)
 names(test_set) <- c("BMD")
 control_list <- list(NoInoc)
 names(control_list) <- c("NoInoc")
-alpha_test <- "shannon"
 
 alpha_func(alpha_test, control_list, test_set, alpha_dir, color_by)
 
 #### Test Pbx vs Abx, account for body site and day####
 color_by <- "Treatment"
 #set output directory
-alpha_dir <- paste(main_fp, "alpha_div/three/", sep='/')
+alpha_dir <- paste(main_fp, "alpha_div/pbx_abx/", sep='/')
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -101,14 +101,13 @@ sink()
 test_set <- Pbx
 control_list <- list(BMD)
 names(control_list) <- c("BMD")
-alpha_test <- "shannon"
 
 alpha_func(alpha_test, control_list, test_set, alpha_dir, color_by)
 
 
 ###Test abx in general or pbx in general against general controls###
 #set output directory
-alpha_dir <- paste(main_fp, "alpha_div/four/", sep='/')
+alpha_dir <- paste(main_fp, "alpha_div/general_abx_pbx_con/", sep='/')
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -119,7 +118,6 @@ test_set <- list(Antibiotics)
 names(test_set) <- c("Antibiotics")
 control_list <- list(Controls)
 names(control_list) <- c("Controls")
-alpha_test <- "shannon"
 
 alpha_func(alpha_test, control_list, test_set, alpha_dir, color_by)
 
@@ -129,9 +127,49 @@ color_by <- "Probiotic"
 
 alpha_func(alpha_test, control_list, test_set, alpha_dir, color_by)
 
-##Test Abx in general vs Pbx in General##
+####Plot Alpha diversity over time for each bodysite, color by treatment
 
-control_list <- list(Antibiotics)
-names(control_list) <- "Antibiotics"
-alpha_func(alpha_test, control_list, test_set, alpha_dir, color_by)
+#Add alphas to the map
+alpha_div <- alpha_div[rownames(mapping),]
+
+mapping$shannon <- alpha_div$shannon
+mapping$observed_species <- alpha_div$observed_species
+mapping$chao1 <- alpha_div$chao1
+mapping$simpson <- alpha_div$simpson
+mapping$pd_whole_tree <- alpha_div$PD_whole_tree
+alpha_metrics <- c("shannon", "observed_species", "chao1", "simpson", "pd_whole_tree")
+
+alpha_trachea <- mapping[Bodysites[[2]],]
+alpha_ileum <- mapping[Bodysites[[1]],]
+alpha_cecum <- mapping[Bodysites[[3]],]
+alpha_tissues <- list(alpha_trachea, alpha_ileum, alpha_cecum)
+names(alpha_tissues) <- c("Trachea", "Ileum", "Cecum")
+
+for(a in 1:length(alpha_metrics)){
+  alpha_plots  <- c()
+  alpha_use <- alpha_metrics[a]
+  for(t in 1:length(alpha_tissues)){
+    working_alpha <- melt(alpha_tissues[t], id.vars = c('SampleID', 'Treatment2', 'Collection_Day'), measure.vars = c(alpha_use))
+    working_alpha$Collection_Day[working_alpha$Collection_Day == "D03"] <- 3
+    working_alpha$Collection_Day[working_alpha$Collection_Day == "D06"] <- 6
+    working_alpha$Collection_Day[working_alpha$Collection_Day == "D13"] <- 13
+    working_alpha$Collection_Day <- as.numeric(as.character(working_alpha$Collection_Day))
+    figure <- ggplot(working_alpha, aes(x=Collection_Day, y=value, color=Treatment2, group=Treatment2)) +
+      geom_jitter(width = 0.25) +
+      geom_smooth(se=FALSE) +
+      scale_color_manual(values=cols2(5))
+    name <- names(alpha_tissues[t])
+    alpha_plots[[name]] <- figure
+  }
+  plot3 <- plot_grid(alpha_plots[[1]], alpha_plots[[2]], alpha_plots[[3]],
+                     labels=c(names(alpha_plots)),hjust=-2, ncol=3)
+  alpha_name <- paste("alpha_time_", alpha_use, ".pdf", sep='')
+  plot_this <- paste(main_fp, "alpha_div/time", alpha_name, sep='/')
+  save_plot(plot_this, plot3,
+            ncol = 3,
+            nrow = 1,
+            base_aspect_ratio = 1.8)
+  
+  
+}
 
