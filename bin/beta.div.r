@@ -96,9 +96,9 @@ control_list <- list(GroGel)
 names(control_list) <- c("GroGel")
 beta_div <- uni
 #Run
-beta_func(beta_div, control, test_set, beta_dir)
+beta_func(beta_div, control_list[[1]], test_set, beta_dir)
 
-#### Test PBX vs Control, account for body site and day####
+#### Test Abx vs Control, account for body site and day####
 #set output directory
 beta_dir <- paste(main_fp, "beta_div/Unifrac/abx_con/", sep='/')
 #make stats file
@@ -112,4 +112,4 @@ names(test_set) <- c("BMD")
 control_list <- list(NoInoc)
 names(control_list) <- c("NoInoc")
 #Run
-beta_func(beta_div, control, test_set, beta_dir)
+beta_func(beta_div, control_list[[1]], test_set, beta_dir)

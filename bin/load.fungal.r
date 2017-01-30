@@ -24,7 +24,7 @@ rownames(fungal_map) <- fungal_map$SampleID
 
 #Remove positive and negative controls
 controls <- c("Negative", "Positive", "Positive.KAPA.PROG")
-fungal_otu1 <- fungal_otu[, ! colnames(otutable) %in% controls]
+fungal_otu1 <- fungal_otu[, ! colnames(fungal_otu) %in% controls]
 #Store the positive and negative values
 control_table <- cbind(fungal_otu[,"Negative"], fungal_otu[,"Positive"], fungal_otu[,"Positive.KAPA.PROG"])
 colnames(control_table) <- controls
@@ -63,13 +63,6 @@ FMB11_f <- row.names(f_map[f_map$Treatment == "3_FMB11GroGel",])
 BMD_f <- row.names(f_map[f_map$Treatment == "5_BMD",])
 TJPbx_f <- row.names(f_map[f_map$Treatment == "4_TJPbxGroGel",])
 GroGel_f <- row.names(f_map[f_map$Treatment == "2_GroGelNoPbx",])
-
-Antibiotics_f <- row.names(f_map[f_map$Abx == "Yes",])
-Probiotics_f <- row.names(f_map[f_map$Probiotic == "Yes",])
-Controls_f <- row.names(f_map[f_map$Probiotic == "No",])
-Controls_f <- Controls_f[which(!Controls_f %in% Antibiotics_f)]
-Treated_f <- list(Antibiotics_f, Probiotics_f)
-names(Treated_f) <- c("Antibiotics", "Probiotics")
 
 Days_avail_f <- unique(f_map$Collection_Day)
 Days_f <- list()

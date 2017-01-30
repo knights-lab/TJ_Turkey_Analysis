@@ -23,7 +23,6 @@ dir.create(paste(main_fp, "beta_div/BrayCurtis/abx_con_fungal", sep='/'))
 dir.create(paste(main_fp, "beta_div/Unifrac", sep='/'))
 dir.create(paste(main_fp, "beta_div/Unifrac/pbx_con", sep='/'))
 dir.create(paste(main_fp, "beta_div/Unifrac/abx_con", sep='/'))
-dir.create(paste(main_fp, "beta_div/Unifrac", sep='/'))
 dir.create(paste(main_fp, "beta_div/WUnifrac", sep='/'))
 dir.create(paste(main_fp, "beta_div/PCoa_SiteDay", sep='/'))
 dir.create(paste(main_fp, "beta_div/PCoa_Day_fungal", sep='/'))
@@ -35,6 +34,9 @@ dir.create(paste(main_fp, "diff_taxa", sep='/'))
 dir.create(paste(main_fp, "diff_taxa/antibiotics", sep='/'))
 dir.create(paste(main_fp, "diff_taxa/FMB11", sep='/'))
 dir.create(paste(main_fp, "diff_taxa/TJPbx", sep='/'))
+dir.create(paste(main_fp, "diff_taxa/antibiotics_fungal", sep='/'))
+dir.create(paste(main_fp, "diff_taxa/FMB11_fungal", sep='/'))
+dir.create(paste(main_fp, "diff_taxa/TJPbx_fungal", sep='/'))
 
 
 

@@ -90,7 +90,7 @@ control_list <- list(GroGel_f)
 names(control_list) <- c("GroGel")
 
 #Run
-beta_func2(fbray, control, test_set, beta_dir)
+beta_func2(fbray, control_list[[1]], test_set, beta_dir)
 
 #### Test PBX vs Control, account for body site and day####
 #set output directory
@@ -106,4 +106,4 @@ names(test_set) <- c("BMD")
 control_list <- list(NoInoc_f)
 names(control_list) <- c("NoInoc")
 #Run
-beta_func2(fbray, control, test_set, beta_dir)
+beta_func2(fbray, control_list[[1]], test_set, beta_dir)

@@ -142,3 +142,31 @@ save_plot(plot_this, plot3by3,
           nrow = 3,
           base_aspect_ratio = 1.8)
 
+
+### Look at fungal diversity and weight
+
+plot_list <- c()
+weight_headers <- c("D3_weight", "D6_weight", "D13_weight")
+
+#Add alphas to the map
+alpha_div2 <- alpha_div2[rownames(f_map),]
+
+f_map$shannon <- alpha_div2$shannon
+f_map$observed_species <- alpha_div2$observed_species
+f_map$simpson <- alpha_div2$simpson
+
+for(k in 1:length(Days_f)){
+  day <- Days_f[[k]]
+  alpha_div1 <- f_map[day,]
+  alpha_div1[,weight_headers[[k]]] <- as.numeric(alpha_div1[,weight_headers[k]])
+  plot1 <- ggplot(alpha_div1, aes_string(x = weight_headers[k], y = "shannon")) +
+    geom_point(size = 3, color=cols2(8)[8])
+  name <- names(Days_f[k])
+  plot_list[[name]] <- plot1
+}
+plot3 <- plot_grid(plot_list[[1]], plot_list[[2]], plot_list[[3]],
+                      labels=c(names(plot_list)), ncol = 3)
+plot_this <- paste(main_fp, "weight/fungal_alpha_weight.pdf", sep='/')
+save_plot(plot_this, plot3,
+          ncol = 3,
+          base_aspect_ratio = 1.8)
