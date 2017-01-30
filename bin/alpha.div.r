@@ -169,7 +169,5 @@ for(a in 1:length(alpha_metrics)){
             ncol = 3,
             nrow = 1,
             base_aspect_ratio = 1.8)
-  
-  
 }
 

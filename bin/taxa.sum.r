@@ -135,13 +135,13 @@ for(i in 1:length(Treatments)){
   taxa_plot2 <- ggplot(otu2, aes(x = SampleID , y = Relative_Abundance)) + 
     geom_bar(stat="identity",position="fill", aes(fill=Taxa)) +
     scale_fill_manual(values= taxa_cols)
-
+  
   #assign pdf name for plot
   name <- paste(plot_title, ".pdf", sep="")
   file_path <- paste(taxa_dir, name, sep='')
   
   plot_together <- plot_grid(taxa_plot2, taxa_plot1, rel_widths = c(1,5), 
-                        labels=c("input", "samples"), vjust=-0.5, hjust=-0.1,ncol = 3)
+                             labels=c("input", "samples"), vjust=-0.5, hjust=-0.1,ncol = 3)
   save_plot(file_path, plot_together,
             ncol = 3,
             base_aspect_ratio = 1.8)

@@ -9,6 +9,7 @@ library('ape')
 library("grid")
 library("gridExtra")
 library("cowplot")
+library("biom")
 
 source('bin/output_dir.r')
 
