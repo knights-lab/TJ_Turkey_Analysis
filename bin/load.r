@@ -140,7 +140,7 @@ names(Inputs) <- c("FMB11_Inoc", "TJPbx_Inoc", "Base_Inoc")
 samples_no_con <- c(NoInoc,GroGel, BMD, FMB11, TJPbx)
 
 ####Add Taxa quantiles to mapping###
-
+# 
 # ranges <- c(0, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 # mapping <- cbind(mapping, t(taxa_table))
 # taxa <- colnames(t(taxa_table))

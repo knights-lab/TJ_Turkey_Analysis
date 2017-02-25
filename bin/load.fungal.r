@@ -81,4 +81,11 @@ names(Pbx_f) <- c("FMB11", "TJPbx")
 Treatments_f <- c(Pbx_f, list(BMD_f))
 names(Treatments_f)[3] <- "BMD"
 
+Antibiotics_f <- row.names(f_map[f_map$Abx == "Yes",])
+Probiotics_f <- row.names(f_map[f_map$Probiotic == "Yes",])
+Controls_f <- row.names(f_map[f_map$Probiotic == "No",])
+Controls_f <- Controls_f[which(!Controls_f %in% Antibiotics_f)]
+
+Pbx_f <- list(FMB11_f, TJPbx_f)
+names(Pbx) <- c("FMB11", "TJPbx")
 

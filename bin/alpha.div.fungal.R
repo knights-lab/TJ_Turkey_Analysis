@@ -52,7 +52,7 @@ alpha_func2 <- function(alpha_test, control_list, test_set, alpha_dir, color_by)
 }
 
 
-#### Test PBX vs Control, account for body site and day####
+#### Test PBX vs Control, account for day####
 color_by <- "Treatment"
 #set output directory
 alpha_dir <- paste(main_fp, "alpha_div/pbx_con_fungal/", sep='/')
@@ -121,7 +121,7 @@ color_by <- "Probiotic"
 
 alpha_func2(alpha_test, control_list, test_set, alpha_dir, color_by)
 
-####Plot Alpha diversity over time for each bodysite, color by treatment
+####Plot Alpha diversity over time, color by treatment
 
 #Add alphas to the map
 alpha_div2 <- alpha_div2[rownames(f_map),]

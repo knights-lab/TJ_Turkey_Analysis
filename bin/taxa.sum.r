@@ -13,6 +13,7 @@ otu_names <- as.character(rownames(taxa_table1))
 for (i in 1:length(otu_names)){
   names_split[i,] <- head(strsplit(otu_names[i], ";", fixed=T)[[1]], n=level)
 }
+
 otu_names <- apply(names_split, 1, function(x) paste(x[1:level], sep = "", collapse = ";"))
 
 taxa_table1$taxonomy <- otu_names
@@ -27,6 +28,14 @@ otu_names <- as.character(otu$taxonomy)
 taxa <- c()
 for (i in 1:length(otu_names)){
   taxon <- (strsplit(otu_names[i], holder, fixed=T))[[1]][2]
+  if(is.na(taxon)){
+    taxon <- (strsplit(otu_names[i], holder, fixed=T))[[1]][1]
+    taxon <- (strsplit(taxon, "; ",))[[1]][5]
+  }
+  if(taxon == "f__"){
+    taxon <- (strsplit(otu_names[i], holder, fixed=T))[[1]][1]
+    taxon <- (strsplit(taxon, "; ",))[[1]][4]
+  }
   taxa <- c(taxa, taxon)
 }
 #Add taxonomy as rownames
@@ -120,13 +129,13 @@ dev.off()
 
 #Compare treatment to input
 cutoff <- 0.05
-for(i in 1:length(Treatments)){
+for(i in 1:length(Pbx)){
   treatment_plot <- Treatments[[i]]
   input_plot <- Inputs[[i]]
   otu1 <- make_taxa_sums(otu, treatment_plot, cutoff)
   otu2 <- make_taxa_sums(otu, input_plot, cutoff)
   
-  plot_title <- names(Treatments[i])
+  plot_title <- names(Pbx[i])
   taxa_plot1 <- ggplot(otu1, aes(x = SampleID , y = Relative_Abundance)) + 
     geom_bar(stat="identity",position="fill", aes(fill=Taxa)) +
     facet_wrap(facets=~Collection_Day, scales = "free_x", nrow=1) +
@@ -140,9 +149,9 @@ for(i in 1:length(Treatments)){
   name <- paste(plot_title, ".pdf", sep="")
   file_path <- paste(taxa_dir, name, sep='')
   
-  plot_together <- plot_grid(taxa_plot2, taxa_plot1, rel_widths = c(1,5), 
-                             labels=c("input", "samples"), vjust=-0.5, hjust=-0.1,ncol = 3)
+  plot_together <- plot_grid(taxa_plot2, taxa_plot1, rel_widths = c(2,5), 
+                             labels=c("input", "samples"), vjust=-0.5, hjust=-0.1,ncol = 2)
   save_plot(file_path, plot_together,
-            ncol = 3,
+            ncol = 2,
             base_aspect_ratio = 1.8)
 }
