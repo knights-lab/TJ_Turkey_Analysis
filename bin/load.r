@@ -126,7 +126,7 @@ keep_days <- c("D03", "D06", "D13")
 Days <- Days[names(Days) %in% keep_days]
 
 Bodysites <- list(Trachea, Ileum, Ceca)
-names(Bodysites) <- c("Trachea", "Ileum", "Ceca")
+names(Bodysites) <- c("Trachea", "Ileum", "Cecum")
 
 Pbx <- list(FMB11, TJPbx)
 names(Pbx) <- c("FMB11", "TJPbx")
@@ -138,6 +138,7 @@ Inputs <- list(FMB11_Inoc, TJPbx_Inoc, Base_Inoc)
 names(Inputs) <- c("FMB11_Inoc", "TJPbx_Inoc", "Base_Inoc")
 
 samples_no_con <- c(NoInoc,GroGel, BMD, FMB11, TJPbx)
+
 
 ####Add Taxa quantiles to mapping###
 # 

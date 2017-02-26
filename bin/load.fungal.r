@@ -1,4 +1,3 @@
-
 #Paths to funal tables - alpha and beta generated with RA tables in QIIME
 #OTU table picked with ninja
 fotu_fp <- paste(data_dir, "Fungal_otutable.biom", sep='')

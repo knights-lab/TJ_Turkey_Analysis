@@ -1,4 +1,5 @@
 #Make PCOA plots
+
 mapping2 <- mapping
 bray <- read.table(bray_fp, sep="\t", header=T, row=1)
 uni <- read.table(uni_fp, sep="\t", header=T, row=1)
@@ -7,7 +8,8 @@ wuni <- read.table(wuni_fp, sep="\t", header=T, row=1)
 beta_tables <- list(uni, wuni, bray)
 beta_names <- c("unifrac.pdf", "weighted_unifrac.pdf", "bray_curtis.pdf")
 
-##Plot day and bodysite separate###
+######################################################################
+#Plot day and bodysite separate###
 #Save as one figure will all 9 combos
 pcoa_func2 <- function(PCOA, header){
   color_by <- header
@@ -60,7 +62,126 @@ for(b in 1:length(beta_tables)){
   
 }
 
-###################
+######################################################################
+#Plot Ileum Days 6 Unifrac, to see what taxon is driving the difference
+#First make the PCOA table for this, then run a correlation test between PC1 and the rel. abundance of different OTUs
+#If is is significant, then plot it using amount of that OTU as the color
+beta_dir <- paste(main_fp, "beta_div/Unifrac/Ileum_6/", sep='/')
+
+samples <- intersect(Ileum,Days[[2]])
+beta_table <-  uni[samples, samples]
+    
+PCOA <- pcoa(beta_table)$vectors
+for(c in 1:ncol(PCOA)){
+  colnames(PCOA)[c] <- paste("PC",c, sep="")
+}
+PCOA <- cbind(PCOA, rownames(PCOA))
+colnames(PCOA)[ncol(PCOA)] <- "SampleID"
+PCOA <- as.data.frame(PCOA)    
+#PCOA <- merge(PCOA, mapping2, by="SampleID")
+PCOA$PC1 <- as.numeric(levels(PCOA$PC1))[PCOA$PC1]
+PCOA$PC2 <- as.numeric(levels(PCOA$PC2))[PCOA$PC2]
+
+rownames(PCOA) <- PCOA$SampleID
+
+mapping_fortaxa <- mapping
+mapping_fortaxa <- mapping_fortaxa[rownames(PCOA),]
+
+working_taxa <- as.data.frame(t(taxa_table[,rownames(PCOA)]))
+working_taxa <- working_taxa[,colSums(working_taxa)>0]
+colnames(working_taxa) <- gsub("; ", "", colnames(working_taxa))
+colnames(working_taxa) <- gsub("__", "_", colnames(working_taxa))
+colnames(working_taxa) <- gsub("-", "_", colnames(working_taxa))
+colnames(working_taxa) <- gsub("\\[", "", colnames(working_taxa))
+colnames(working_taxa) <- gsub("\\]", "", colnames(working_taxa))
+colnames(working_taxa) <- gsub(" ", "_",colnames(working_taxa))
+working_taxa$SampleID <- rownames(working_taxa)
+
+####Add Taxa quantiles to taxa map ###
+
+ranges <- c(0, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
+mapping_fortaxa <- merge(mapping_fortaxa, working_taxa, by="SampleID")
+taxa_mod <- colnames(working_taxa)
+for(i in 1:nrow(mapping_fortaxa)){
+  sample_id <- rownames(mapping_fortaxa)[i]
+  for(k in 1:length(taxa_mod)){
+    taxon <- taxa_mod[k]
+    for(m in 1:(length(ranges)-1)){
+      if((mapping_fortaxa[sample_id, taxon] >= ranges[m]) && (mapping_fortaxa[sample_id, taxon] < ranges[(m+1)])){
+        mapping_fortaxa[sample_id, taxon] <- ranges[m]
+      } else {
+        if(mapping_fortaxa[sample_id,taxon] == ranges[m]){
+          mapping_fortaxa[sample_id, taxon] <- ranges[m]
+        }
+      }
+    }
+  }
+}
+
+
+
+PCOA <- merge(PCOA, mapping_fortaxa, by="SampleID")
+PCOA$PC1 <- as.numeric(as.character(PCOA$PC1))
+PCOA$PC2 <- as.numeric(as.character(PCOA$PC2))
+for(i in 4:ncol(PCOA)){
+  PCOA[,i] <- as.factor(PCOA[,i])
+}
+
+for(i in 1:ncol(mapping_fortaxa)){
+  header <- colnames(mapping_fortaxa)[i]
+  color_by <- header
+  print(header)
+  name <- paste(header, "pdf", sep=".")
+  fp <- paste(beta_dir, name, sep="/")
+  plot1 <- ggplot(PCOA) +
+    geom_point(size = 4, aes_string(x = "PC1", y = "PC2", color = color_by)) +
+    theme_bw() +
+    theme(panel.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 10),
+          legend.title = element_blank(),
+          legend.key.size = unit(0.2, "in"),
+          legend.text = element_text(size=5),
+          legend.position = 'bottom',
+          axis.text = element_text(size=5),
+          axis.title = element_text(size=8)) +
+    scale_color_manual(values=cols2(length(unique(PCOA[,color_by])))) +
+    guides(color=guide_legend(nrow=3))
+  
+  pdf(fp, height=4,width=6)
+  print(plot1)
+  dev.off()
+}
+
+
+##############################################
+for(c in 1:ncol(working_taxa)){
+  if(!is.na(cor(PCOA$PC1, working_taxa[,c]))){
+    if(cor(PCOA$PC1, working_taxa[,c]) > 0.5){
+      PCOA2 <- merge(PCOA, working_taxa[,c,drop=F])
+      #PCOA2[,colnames(working_otu2)[c]] <- as.factor(PCOA2[,colnames(working_otu2)[c]])
+      plot1 <- ggplot(PCOA2) +
+        geom_point(size = 3, aes_string(x = "PC1", y = "PC2", color = colnames(working_taxa)[c])) +
+        guides(color=F)
+      name <- paste(colnames(working_taxa)[c],".pdf", sep="_")
+      save_plot(paste(beta_dir, name, sep=""), plot1)
+    } else {
+      if(cor(PCOA$PC1, working_taxa[,c]) > -0.5){
+        PCOA2 <- merge(PCOA, working_taxa[,c,drop=F])
+        #PCOA2[,colnames(working_otu2)[c]] <- as.factor(PCOA2[,colnames(working_otu2)[c]])
+        plot1 <- ggplot(PCOA2) +
+          geom_point(size = 3, aes_string(x = "PC1", y = "PC2", color = colnames(working_taxa)[c]))+
+          guides(color=F)
+        name <- paste(colnames(working_taxa)[c],".pdf", sep="_")
+        save_plot(paste(beta_dir, name, sep=""), plot1)
+      }
+     }
+   }
+}
+     
+
+######################################################################
 
 pcoa_func <- function(PCOA, pcoa_dir){
   for(i in 1:ncol(mapping2)){
@@ -92,6 +213,7 @@ pcoa_func <- function(PCOA, pcoa_dir){
   save_plot(fp, plot1)
   }
 }
+
 
 ####All Samples###
 
@@ -136,4 +258,4 @@ pcoa_func <- function(PCOA, pcoa_dir){
 #   
 #   pcoa_func(PCOA, pcoa_dir)
 # }
-# 
+#
