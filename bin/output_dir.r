@@ -4,6 +4,8 @@ now<- format(Sys.time(), "%H-%M-%S")
 main_fp <- paste("analysis",now, sep="-")
 dir.create(main_fp)
 
+dir.create(paste(main_fp, "transcriptomic", sep='/'))
+
 dir.create(paste(main_fp, "alpha_div", sep='/'))
 dir.create(paste(main_fp, "alpha_div/treatment", sep="/"))
 dir.create(paste(main_fp, "alpha_div/treatment_fungal", sep="/"))

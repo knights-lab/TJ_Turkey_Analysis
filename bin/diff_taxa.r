@@ -1,4 +1,4 @@
-set #### Find and plot any differentiated taxa
+#### Find and plot any differentiated taxa
 source("bin/diff.test.r")
 
 #set output dir

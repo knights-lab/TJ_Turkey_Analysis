@@ -58,7 +58,7 @@ for(b in 1:length(beta_tables)){
   save_plot(plot_this, plot3by3,
             ncol = 3,
             nrow = 3,
-            base_aspect_ratio = 1.8)
+            base_aspect_ratio = 1.6)
   
 }
 
@@ -97,29 +97,7 @@ colnames(working_taxa) <- gsub("\\]", "", colnames(working_taxa))
 colnames(working_taxa) <- gsub(" ", "_",colnames(working_taxa))
 working_taxa$SampleID <- rownames(working_taxa)
 
-####Add Taxa quantiles to taxa map ###
-
-ranges <- c(0, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
-mapping_fortaxa <- merge(mapping_fortaxa, working_taxa, by="SampleID")
-taxa_mod <- colnames(working_taxa)
-for(i in 1:nrow(mapping_fortaxa)){
-  sample_id <- rownames(mapping_fortaxa)[i]
-  for(k in 1:length(taxa_mod)){
-    taxon <- taxa_mod[k]
-    for(m in 1:(length(ranges)-1)){
-      if((mapping_fortaxa[sample_id, taxon] >= ranges[m]) && (mapping_fortaxa[sample_id, taxon] < ranges[(m+1)])){
-        mapping_fortaxa[sample_id, taxon] <- ranges[m]
-      } else {
-        if(mapping_fortaxa[sample_id,taxon] == ranges[m]){
-          mapping_fortaxa[sample_id, taxon] <- ranges[m]
-        }
-      }
-    }
-  }
-}
-
-
-
+####
 PCOA <- merge(PCOA, mapping_fortaxa, by="SampleID")
 PCOA$PC1 <- as.numeric(as.character(PCOA$PC1))
 PCOA$PC2 <- as.numeric(as.character(PCOA$PC2))
@@ -154,32 +132,68 @@ for(i in 1:ncol(mapping_fortaxa)){
   dev.off()
 }
 
+#keep taxa that are great than 0.01 in abundance across all samples
+working_taxa <- working_taxa[,!names(working_taxa)=="SampleID"] #there are 365 OTUs
+working_taxa <- working_taxa[,colSums(working_taxa) >0] #none dropped
+working_taxa <- working_taxa[,colSums(working_taxa) > 0.001] # 160
+working_taxa <- working_taxa[,colSums(working_taxa) > 0.01] # 63
+working_taxa$SampleID <- rownames(working_taxa)
+
+####Add Taxa quantiles to taxa map ###
+
+ranges <- c(0, 0.0001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
+mapping_fortaxa <- merge(mapping_fortaxa, working_taxa, by="SampleID")
+taxa_mod <- colnames(working_taxa)
+for(i in 1:nrow(mapping_fortaxa)){
+  sample_id <- rownames(mapping_fortaxa)[i]
+  for(k in 1:length(taxa_mod)){
+    taxon <- taxa_mod[k]
+    for(m in 1:(length(ranges)-1)){
+      if((mapping_fortaxa[sample_id, taxon] >= ranges[m]) && (mapping_fortaxa[sample_id, taxon] < ranges[(m+1)])){
+        mapping_fortaxa[sample_id, taxon] <- ranges[m]
+      } else {
+        if(mapping_fortaxa[sample_id,taxon] == ranges[m]){
+          mapping_fortaxa[sample_id, taxon] <- ranges[m]
+        }
+      }
+    }
+  }
+}
+
 
 ##############################################
-for(c in 1:ncol(working_taxa)){
-  if(!is.na(cor(PCOA$PC1, working_taxa[,c]))){
-    if(cor(PCOA$PC1, working_taxa[,c]) > 0.5){
-      PCOA2 <- merge(PCOA, working_taxa[,c,drop=F])
-      #PCOA2[,colnames(working_otu2)[c]] <- as.factor(PCOA2[,colnames(working_otu2)[c]])
-      plot1 <- ggplot(PCOA2) +
-        geom_point(size = 3, aes_string(x = "PC1", y = "PC2", color = colnames(working_taxa)[c])) +
-        guides(color=F)
-      name <- paste(colnames(working_taxa)[c],".pdf", sep="_")
+#If correlated with PC1 or 2, plot taxa gradient
+PCOA2 <- merge(PCOA[,1:6], working_taxa, by="SampleID")
+
+for(c in 7:ncol(PCOA2)){
+  taxon <- colnames(PCOA2)[c]
+  cor.out <- cor.test(PCOA2$PC1, PCOA2[,taxon])$p.val
+  cor.out2 <- cor.test(PCOA2$PC2, PCOA2[,taxon])$p.val
+  if(cor.out < 0.05 | cor.out2 < 0.05){
+      #values <- sort(unique(PCOA2[,ncol(PCOA2)]))
+      #PCOA2[,ncol(PCOA2)] <- as.factor(PCOA2[,ncol(PCOA2)])
+      #PCOA2$new_column <- .bincode(PCOA2[,taxon], ranges, TRUE, TRUE)
+    print(taxon)
+    plot1 <- ggplot(PCOA2) +
+      geom_point(size = 4, alpha=0.75, aes_string(x = "PC1", y = "PC2", color = taxon)) +
+      theme_bw() +
+      theme(panel.background = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10),
+            legend.title = element_blank(),
+            legend.key.size = unit(0.2, "in"),
+            legend.text = element_text(size=5),
+            legend.position = 'bottom',
+            axis.text = element_text(size=5),
+            axis.title = element_text(size=8)) +
+            scale_color_gradientn(colors= c("#E6AB02", "#66A61E", "#666666"), guide="colorbar")
+            #guides(color=guide_legend(nrow=3))  
+  
+      name <- paste(colnames(PCOA2)[c],".pdf", sep="_")
       save_plot(paste(beta_dir, name, sep=""), plot1)
-    } else {
-      if(cor(PCOA$PC1, working_taxa[,c]) > -0.5){
-        PCOA2 <- merge(PCOA, working_taxa[,c,drop=F])
-        #PCOA2[,colnames(working_otu2)[c]] <- as.factor(PCOA2[,colnames(working_otu2)[c]])
-        plot1 <- ggplot(PCOA2) +
-          geom_point(size = 3, aes_string(x = "PC1", y = "PC2", color = colnames(working_taxa)[c]))+
-          guides(color=F)
-        name <- paste(colnames(working_taxa)[c],".pdf", sep="_")
-        save_plot(paste(beta_dir, name, sep=""), plot1)
-      }
-     }
-   }
+  } 
 }
-     
 
 ######################################################################
 

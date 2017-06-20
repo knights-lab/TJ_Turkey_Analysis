@@ -103,17 +103,17 @@ alpha_func <- function(alpha_test, control_list, test_set, alpha_dir, color_by){
         name <- paste(body, day, pbx, con_name, sep="-")
         name <- paste(name, ".pdf", sep='')
         file_path <- paste(alpha_dir, name, sep='')
-        #pdf(file_path, height=4,width=6);
+        pdf(file_path, height=4,width=6);
         
         #make alpha div box plots
         map <- mapping[full_set,]
         alpha_subset <- alpha_subset[rownames(map),,drop=TRUE]
         title <- sprintf('%s, %s, %s vs. %s:',body, day, pbx, con_name)
         
-        #boxplot(alpha_subset ~ map[,color_by,drop=TRUE],
-        #        xlab='',ylab=alpha_test, main=title,
-        #        col=cols2(2))
-        #dev.off()
+        boxplot(alpha_subset ~ map[,color_by,drop=TRUE],
+                xlab='',ylab=alpha_test, main=title,
+                col=cols2(2))
+        dev.off()
       }
     }
   }

@@ -18,6 +18,7 @@ data_dir <- "data/"
 otu_fp <- paste(data_dir, "Turkey_1000_Taxa.txt", sep='')
 map_fp <- paste(data_dir, "Turkey_mapping.txt", sep='')
 alpha_fp <- paste(data_dir, "Turkey_Alpha_RA.txt", sep='')
+ileum_transfp <- paste(data_dir, "Ileum_Normalized_Transcriptomics.txt", sep='')
 bray_fp <- paste(data_dir, "bray_curtis_Turkey_1000_RA.txt", sep='')
 wuni_fp <- paste(data_dir, "weighted_unifrac_Turkey_1000_RA.txt", sep='')
 uni_fp <- paste(data_dir, "unifrac_Turkey_1000_RA.txt", sep='')
@@ -70,6 +71,22 @@ ids_keep <- intersect(rownames(metadata), colnames(otutable4))
 mapping <- metadata[ids_keep,]
 mapping$MapDepth <- as.factor(colSums(otutable2))
 
+####Add the transcriptomics sample IDs to match up with
+mapping$transcriptomic <- NA
+mapping$treatment4 <- mapping$Treatment2
+mapping$treatment4 <- lapply(mapping$treatment4, sub, pattern="No_Inoc", replacement="NOI",fixed=T)
+mapping$treatment4 <- lapply(mapping$treatment4, sub, pattern="TJPbx", replacement="TJP",fixed=T)
+mapping$treatment4 <- lapply(mapping$treatment4, sub, pattern="FMB11", replacement="FMB",fixed=T)
+mapping$treatment4 <- lapply(mapping$treatment4, sub, pattern="GroGel", replacement="GRG",fixed=T)
+mapping$treatment4 <- unlist(mapping$treatment4)
+
+substrRIGHT <- function(x, n){
+  substr(x, nchar(x)-n+1, nchar(x))
+}
+for(r in 1:nrow(mapping)){
+  mapping[r,"transcriptomic"] <- paste(mapping$treatment4[r], mapping$Collection_Day[r], mapping$Cage[r], substrRIGHT(mapping$SampleID[r], 3),sep="")
+}
+
 ####Add taxonomy at species level to OTU table####
 t_table <- as.matrix(otutable4)
 taxonomy2 <- taxonomy[intersect(rownames(taxonomy), rownames(t_table)),]
@@ -83,6 +100,12 @@ mapping$nTaxa <- as.factor(colSums(taxa_table > 0))
 
 #Load alpha_div
 alpha_div <- read.table(alpha_fp, sep="\t", comment="", row.names=1, header=TRUE)
+
+#Load Ileum transcriptomics
+ileum_transcript <- read.table(ileum_transfp, sep='\t', comment="", row=1, header=T)
+#These samples aren't in the map:
+#Day1 samples, and two Day 3 samples
+colnames(ileum_transcript)[which(!colnames(ileum_transcript) %in% mapping$transcriptomic)]
 
 ####Get sample IDs for testing####
 mapping[is.na(mapping)] <- "N_A"

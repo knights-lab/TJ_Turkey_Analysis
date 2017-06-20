@@ -86,6 +86,7 @@ sink()
 
 ##Set variables
 test_set <- Pbx_f
+names(test_set) <- c("FMB11", "TJPbx")
 control_list <- list(GroGel_f)
 names(control_list) <- c("GroGel")
 
