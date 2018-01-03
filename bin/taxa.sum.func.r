@@ -41,7 +41,8 @@ make_taxa_sums <- function(otu, union, cutoff){
   otu_made <- melt(subset_otu, id.vars = "SampleID", variable.name = "Taxa", value.name = "Relative_Abundance")
   
   #Merge metadata
-  otu_made <- merge(otu_made, mapping, by="SampleID")
+  new_map <- mapping[union,]
+  otu_made <- merge(otu_made, new_map, by="SampleID")
   
   #Assign taxa levels (order in bar plot)
   otu_made$Taxa <- factor(otu_made$Taxa, levels = c(names(max_abund)), ordered=TRUE)
@@ -80,10 +81,11 @@ make_taxa_sums2 <- function(otu, union, cutoff){
   subset_otu_na[subset_otu_na == 0] <- NA
   max_abund <- colMeans(subset_otu_na, na.rm=TRUE)
   names(max_abund) <- colnames(subset_otu_na)
-  max_abund <- c(max_abund, 0)
-  names(max_abund)[length(max_abund)] <- "Other"
+  if("Other" %in% colnames(subset_otu)){
+    max_abund <- c(max_abund, 0)
+    names(max_abund)[length(max_abund)] <- "Other"
+  }
   max_abund <- sort(max_abund, decreasing=TRUE)
-  
   #add sample IDs to otu table and melt table
   subset_otu <- subset_otu[,names(max_abund)]
   subset_otu$SampleID <- rownames(subset_otu)

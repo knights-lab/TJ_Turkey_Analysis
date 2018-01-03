@@ -79,6 +79,7 @@ beta_func2 <- function(beta_div, control, test_set, beta_dir){
 #### Test PBX vs Control, account for body site and day####
 #set output directory
 beta_dir <- paste(main_fp, "beta_div/BrayCurtis/pbx_con_fungal/", sep='/')
+dir.create(beta_dir)
 #make stats file
 file_name <- paste(beta_dir, "Beta_Stats.txt", sep='')
 sink(file_name)
@@ -96,6 +97,7 @@ beta_func2(fbray, control_list[[1]], test_set, beta_dir)
 #### Test PBX vs Control, account for body site and day####
 #set output directory
 beta_dir <- paste(main_fp, "beta_div/BrayCurtis/abx_con_fungal/", sep='/')
+dir.create(beta_dir)
 #make stats file
 file_name <- paste(beta_dir, "Beta_Stats.txt", sep='')
 sink(file_name)

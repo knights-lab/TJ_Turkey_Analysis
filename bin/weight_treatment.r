@@ -8,12 +8,12 @@ colnames(weight_map)[8] <- 6
 colnames(weight_map)[10] <- 13
 weight_map$SampleID <- rownames(weight_map)
 
-weight_map2 <- melt(weight_map, id.vars = c('SampleID', 'Treatment2'), measure.vars = c('3','6','13'))
+weight_map2 <- melt(weight_map, id.vars = c('SampleID', 'Treatment2', "Gain313", "Gain613"), measure.vars = c('3','6','13'))
 weight_map2$variable <- as.numeric(as.character(weight_map2$variable))
 weight_map2$value <- as.numeric(as.character(weight_map2$value))
 
-colnames(weight_map2)[3] <- "Day"
-colnames(weight_map2)[4] <- "Weight"
+colnames(weight_map2)[5] <- "Day"
+colnames(weight_map2)[6] <- "Weight"
 
 figure <- ggplot(weight_map2, aes(x=Day, y=Weight, color=Treatment2, group=Treatment2)) +
           geom_jitter(width = 0.25) +
@@ -26,8 +26,19 @@ save_plot(fp, figure, base_aspect_ratio = 1.8)
 
 
 #Compare the day 13 weights
-
 weight_map3 <- weight_map2[weight_map2$Day == 13,]
+weight_map3$Gain313 <- as.numeric(weight_map3$Gain313)
+weight_map3$Gain613 <- as.numeric(weight_map3$Gain613)
+
+ggplot(weight_map3, aes(x=Treatment2, y=Gain313, color=Treatment2)) +
+  geom_boxplot() +
+  geom_jitter(width=0.15, alpha=0.75) +
+  scale_color_manual(values=cols2(5))
+
+ggplot(weight_map3, aes(x=Treatment2, y=Gain613, color=Treatment2)) +
+  geom_boxplot() +
+  geom_jitter(width=0.15, alpha=0.75) +
+  scale_color_manual(values=cols2(5))
 
 figure2 <- ggplot(weight_map3, aes(x=Treatment2, y=Weight, color=Treatment2)) +
             geom_boxplot() +
@@ -120,14 +131,15 @@ sink()
 plot_list <- c()
 weight_headers <- c("D3_weight", "D6_weight", "D13_weight")
 
+
 for(i in 1:length(Bodysites)){
   body <- Bodysites[[i]]
   for(k in 1:length(Days)){
     day <- Days[[k]]
     samples <- intersect(body,day)
-    alpha_div1 <- mapping[samples,]
+    alpha_div1 <- a_mapping[samples,]
     alpha_div1[,weight_headers[[k]]] <- as.numeric(alpha_div1[,weight_headers[k]])
-    plot1 <- ggplot(alpha_div1, aes_string(x = weight_headers[k], y = "pd_whole_tree")) +
+    plot1 <- ggplot(alpha_div1, aes_string(x = weight_headers[k], y = "obsspecies")) +
       geom_point(size = 3, color=cols2(8)[8])
     name <- paste(names(Days[k]), names(Bodysites[i]), sep="_")
     plot_list[[name]] <- plot1

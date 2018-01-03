@@ -19,7 +19,6 @@ names(ftaxa_cols)[nrow(ftaxa_table)+1] <- "Other"
 otu <- sweep(ftaxa_table,2,colSums(ftaxa_table),`/`)
 
 
-
 ############Make taxa plot for each bodysite on each day, facet by treatment
 taxa_dir <- paste(main_fp, "taxa_sum_fungal/", sep='/')
 

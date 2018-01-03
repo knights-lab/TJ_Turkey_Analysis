@@ -1,6 +1,5 @@
 library("vegan")
 library("RColorBrewer")
-library("vegan")
 library("ggplot2")
 library("reshape2")
 library("plyr")
@@ -10,66 +9,92 @@ library("grid")
 library("gridExtra")
 library("cowplot")
 library("biom")
+library("robCompositions")
+library("microbiome")
+library("dplyr")
+library("tidyr")
+library("cluster")
 
 source('bin/output_dir.r')
+source('bin/diff.test.r')
+source("bin/taxa.sum.func.r")
+
+theme_set(theme_bw())
 
 #Find the data
 data_dir <- "data/"
 otu_fp <- paste(data_dir, "Turkey_1000_Taxa.txt", sep='')
 map_fp <- paste(data_dir, "Turkey_mapping.txt", sep='')
-alpha_fp <- paste(data_dir, "Turkey_Alpha_RA.txt", sep='')
+alpha_fp <- paste(data_dir, "alpha_diversity10k.txt", sep='')
 ileum_transfp <- paste(data_dir, "Ileum_Normalized_Transcriptomics.txt", sep='')
-bray_fp <- paste(data_dir, "bray_curtis_Turkey_1000_RA.txt", sep='')
-wuni_fp <- paste(data_dir, "weighted_unifrac_Turkey_1000_RA.txt", sep='')
-uni_fp <- paste(data_dir, "unifrac_Turkey_1000_RA.txt", sep='')
+bray_fp <- paste(data_dir, "beta_diversity10k/bray_curtis_Turkey_10k_Taxa.txt", sep='')
+wuni_fp <- paste(data_dir, "beta_diversity10k/weighted_unifrac_Turkey_10k_Taxa.txt", sep='')
+uni_fp <- paste(data_dir, "beta_diversity10k/unifrac_Turkey_10k_Taxa.txt", sep='')
 
 ####Load OTU table and metadata####
 #Table is pre-filtered to keep samples with >= 1000 counts
 #this is 551 samples out of 603 listed in the mapping file
-metadata <- read.table(map_fp, sep = "\t", comment="", header=T, as.is=T, check.names=F)
+metadata <- read.table(map_fp, 
+                       sep = "\t", 
+                       comment="", 
+                       header=T, 
+                       as.is=T, 
+                       check.names=F)
 colnames(metadata)[1] <- "SampleID"
 rownames(metadata) <- metadata$SampleID
 
 #otu table is otus as rows, samples as columns, column 553 is the taxonomy (header= taxonomy)
-otu_table <- read.table(otu_fp, sep="\t", comment="", header=T, skip=1, as.is=T, check.names=F)
+otu_table <- read.table(otu_fp, 
+                        sep="\t", 
+                        comment="", 
+                        header=T, 
+                        skip=1, 
+                        as.is=T, 
+                        check.names=F)
 rownames(otu_table) <- otu_table[,1]
 
 #remove and store taxonomy
+remove <- otu_table[grep("Zea",otu_table$taxonomy), "taxonomy"]
+remove1 <- otu_table[grep("Streptophyta",otu_table$taxonomy), "taxonomy"]
+remove2 <- otu_table[grep("Chloroplast",otu_table$taxonomy), "taxonomy"]
+
+remove <- c(remove, remove1,)
+otu_table <- otu_table[!otu_table$taxonomy %in% remove,]
 taxonomy <- as.data.frame(cbind(otu_table[,1], otu_table[,ncol(otu_table)]))
 rownames(taxonomy) <- taxonomy$V1
 otu_table <- otu_table[,2:(ncol(otu_table)-1)]
 colnames(otu_table)[550] <- "TJPBXFMB11Inoc" 
 
-####Filter and normalize####
+####Filter####
+#drop samples below 1500 counts
+otu_table <- otu_table[, colSums(otu_table) > 1500]
+#keep otus that occur in > 1 sample (9215 OTUs to 606)
+#Change OTUs less than 1/10 millionth of read depth to 0
+otu_table2 <- otu_table
+otu_table2[otu_table2 < sum(colSums(otu_table2))/10000000] <- 0
 
-#keep otus that occur in > 1 sample (9215 OTUs to 5212)
-otutable2 <- otu_table[rowSums(otu_table > 0) > 1,]
+#Change singletons to 0 
+otu_table2[otu_table2 < 2] <- 0 # This table has 9215 OTUs
 
-#square root transform
-#otutable3 <- sqrt(otutable2)
-otutable3 <- otutable2
+#Filter the OTU table to keep OTUs in at least 5% of samples, and whose count is at least 5
+otu_table3 <- otu_table2[rowSums(otu_table2 > 0) > (0.05*ncol(otu_table2)),] #this table has 606 OTUs
 
-#convert to relative abundance
-otutable4 <- sweep(otutable3,2,colSums(otutable3),`/`)  #OTU table is 5212 taxa and 551 samples
+otutable4 <- otu_table3
 
-#Print this table as the normalized OTU table, multiplied by 10000 for beta div problems
-otutable5 <- round(otutable4 * 100000)
-sink("data/Turkey_1000_RA.txt")
-cat("#OTUID")
-write.table(otutable5, 
-            sep="\t", #tell R to make is tab-delimited
-            quote=F, #tell R not to put quotes
-            col.names=NA) #formats the column headers properly
-sink()
-#To convert to biom later: biom convert -i Turkey_1000_RA.txt -o Turkey_1000_RA.biom --table-type "OTU table" --to-json (qiime 1.9.0)
-#On MSI:
-# beta_diversity.py -i Turkey_1000_RA.biom -o Turkey_Beta1 -m bray_curtis,weighted_unifrac,unifrac -t ../shared/97_otus.tree
-# alpha_diversity.py -i Turkey_1000_RA.biom -o Turkey_Alpha_RA.txt -m chao1,observed_species,shannon,simpson,PD_whole_tree -t ../shared/97_otus.tree
+####Transform####
+#Center log-ratio tranform the data for diff. taxa testing
+#Ref: Palarea-Albaladejo J, et al. 2014. JOURNAL OF CHEMOMETRICS. A bootstrap estimation scheme for chemical compositional data with nondetects. 28;7:585–599.
+#Ref: Gloor GB, et al. 2016. ANNALS OF EPIDEMIOLOGY. It's all relative: analyzing microbiome data as compositions. 26;5:322-329.
+CLR_otutable <- otu_table3
+CLR_otutable[CLR_otutable == 0] <- 0.65 #Convert any 0 to 0.65 to allow for CLR transform
 
-####Filter the metadata to keep only samples in the new otutable
+CLR_otutable <- t(CLR_otutable) #convert to samples as rows
+CLR_otutable <- cenLR(CLR_otutable)$x.clr  #transform
+
+###Filter the metadata to keep only samples in the new otutable
 ids_keep <- intersect(rownames(metadata), colnames(otutable4))
 mapping <- metadata[ids_keep,]
-mapping$MapDepth <- as.factor(colSums(otutable2))
+mapping$MapDepth <- as.factor(colSums(otu_table[,ids_keep]))
 
 ####Add the transcriptomics sample IDs to match up with
 mapping$transcriptomic <- NA
@@ -92,7 +117,7 @@ t_table <- as.matrix(otutable4)
 taxonomy2 <- taxonomy[intersect(rownames(taxonomy), rownames(t_table)),]
 rownames(t_table) <- taxonomy2$V2
 
-#Collapse same taxonomies (from 5212 to 767)
+#Collapse same taxonomies (from 606 to 99)
 taxa_table <- aggregate(t_table[,1:ncol(t_table)], by=list(rownames(t_table)), FUN = sum)
 rownames(taxa_table) <- taxa_table[,1]
 taxa_table <- taxa_table[,2:ncol(taxa_table)]
@@ -105,6 +130,7 @@ alpha_div <- read.table(alpha_fp, sep="\t", comment="", row.names=1, header=TRUE
 ileum_transcript <- read.table(ileum_transfp, sep='\t', comment="", row=1, header=T)
 #These samples aren't in the map:
 #Day1 samples, and two Day 3 samples
+print("Transcript samples missing:")
 colnames(ileum_transcript)[which(!colnames(ileum_transcript) %in% mapping$transcriptomic)]
 
 ####Get sample IDs for testing####
@@ -162,7 +188,8 @@ names(Inputs) <- c("FMB11_Inoc", "TJPbx_Inoc", "Base_Inoc")
 
 samples_no_con <- c(NoInoc,GroGel, BMD, FMB11, TJPbx)
 
-
+treats_nocon <- list(BMD, TJPbx, FMB11, GroGel) 
+names(treats_nocon) <- c("BMD", "TJPbx", "FMB11", "GroGel")
 ####Add Taxa quantiles to mapping###
 # 
 # ranges <- c(0, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
@@ -183,6 +210,5 @@ samples_no_con <- c(NoInoc,GroGel, BMD, FMB11, TJPbx)
 # colnames(mapping) <- gsub(" ", "_", colnames(mapping))
 
 ####Set Colors####
-
 cols <- brewer.pal(8,'Dark2')
 cols2 <- colorRampPalette(cols)

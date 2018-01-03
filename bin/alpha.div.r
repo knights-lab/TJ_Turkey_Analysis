@@ -2,11 +2,14 @@
 
 ######################################################################
 #Add alpha diversity to map, and it will be way easier to plot
-alpha_div <- alpha_div[rownames(mapping),]
-mapping$shannon <- alpha_div[,"shannon"]
-mapping$simpson <- alpha_div[,"simpson"]
-mapping$pdwholetree <- alpha_div[,"PD_whole_tree"]
-mapping$obsspecies <- alpha_div[,"observed_species"]
+alpha_intersect <- intersect(rownames(alpha_div), rownames(mapping))
+
+alpha_div <- alpha_div[alpha_intersect,]
+a_mapping <- mapping[alpha_intersect,]
+a_mapping$shannon <- alpha_div[,"shannon"]
+a_mapping$simpson <- alpha_div[,"simpson"]
+a_mapping$pdwholetree <- alpha_div[,"PD_whole_tree"]
+a_mapping$obsspecies <- alpha_div[,"observed_species"]
 
 ######################################################################
 #One plot per bodysite, per day. Save as compound figure, one per metric
@@ -19,11 +22,12 @@ for(a in 1:length(alpha_metrics)){
   total_plot <- c()
   for(s in 1:length(Bodysites)){
     bodysite_plot <- c()
-    max_div <- max(mapping[Bodysites[[s]],a_metric])
-    min_div <- min(mapping[Bodysites[[s]],a_metric])
+    max_div <- max(a_mapping[Bodysites[[s]],a_metric])
+    min_div <- min(a_mapping[Bodysites[[s]],a_metric])
     for(d in 1:length(Days)){
       samples_keep <- intersect(Bodysites[[s]], Days[[d]])
-      plot1 <- ggplot(mapping[samples_keep,]) +
+      samples_keep <- intersect(samples_keep, rownames(a_mapping))
+      plot1 <- ggplot(a_mapping[samples_keep,]) +
         geom_boxplot(aes_string(x="Treatment2", y=a_metric, fill="Treatment2")) +
         scale_fill_manual(values=cols2(5)) +
         guides(fill=F) +
@@ -34,7 +38,7 @@ for(a in 1:length(alpha_metrics)){
     total_plot[[names(Bodysites[s])]] <- row_plot
   }
   file_name <- paste(alpha_dir, a_metric, "_by_treatment.pdf", sep="")
-  final_plot <- plot_grid(total_plot[["Trachea"]], total_plot[["Ileum"]], total_plot[["Cecum"]], nrow=3)
+  final_plot <- plot_grid(total_plot[["Trachea"]], total_plot[["Ileum"]], total_plot[["Cecum"]], nrow=3, labels=c("trachea", "ileum", "ceca"))
   save_plot(file_name, final_plot,nrow=3, col=3, base_aspect_ratio = 3)
 }
 
@@ -46,10 +50,11 @@ alpha_dir <- paste(main_fp, "alpha_div/time/", sep='/')
 for(a in 1:length(alpha_metrics)){
   a_metric <- alpha_metrics[a]
   total_plot <- c()
-  max_div <- max(mapping[,a_metric])
-  min_div <- min(mapping[,a_metric])
+  max_div <- max(a_mapping[,a_metric])
+  min_div <- min(a_mapping[,a_metric])
   for(s in 1:length(Bodysites)){
-    bodysite_subset <- mapping[Bodysites[[s]],]
+    samples_keep <- intersect(Bodysites[[s]], rownames(a_mapping))
+    bodysite_subset <- a_mapping[samples_keep,]
     bodysite_subset$Collection_Day[bodysite_subset$Collection_Day == "D03"] <- 3
     bodysite_subset$Collection_Day[bodysite_subset$Collection_Day == "D06"] <- 6
     bodysite_subset$Collection_Day[bodysite_subset$Collection_Day == "D13"] <- 13
@@ -106,7 +111,7 @@ alpha_func <- function(alpha_test, control_list, test_set, alpha_dir, color_by){
         pdf(file_path, height=4,width=6);
         
         #make alpha div box plots
-        map <- mapping[full_set,]
+        map <- a_mapping[full_set,]
         alpha_subset <- alpha_subset[rownames(map),,drop=TRUE]
         title <- sprintf('%s, %s, %s vs. %s:',body, day, pbx, con_name)
         

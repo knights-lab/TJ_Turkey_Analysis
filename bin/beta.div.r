@@ -15,6 +15,8 @@ beta_func <- function(beta_div, control, test_set, beta_dir){
         set2 <- control[control %in% body_test]
         set1 <- set1[set1 %in% day_test]
         set2 <- set2[set2 %in% day_test]
+        set1 <- intersect(set1, rownames(beta_div))
+        set2 <- intersect(set2, rownames(beta_div))
         full_set <- c(set1, set2)
         ktest <- c()
         set1_within <- c()

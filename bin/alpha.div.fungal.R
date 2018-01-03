@@ -10,6 +10,7 @@ f_map$obsspecies <- alpha_div2[,"observed_species"]
 #One plot per day. Save as compound figure, one per metric
 #x=treatment
 alpha_dir <- paste(main_fp, "alpha_div/treatment_fungal/", sep='/')
+dir.create(alpha_dir)
 #alpha_metrics <- c("shannon", "simpson", "pdwholetree", "obsspecies")
 alpha_metrics <- c("shannon", "simpson", "obsspecies")
 
@@ -35,6 +36,7 @@ for(a in 1:length(alpha_metrics)){
 #One plot per day. Save as compound figure, one per metric
 #x=day
 alpha_dir <- paste(main_fp, "alpha_div/time_fungal/", sep='/')
+dir.create(alpha_dir)
 
 for(a in 1:length(alpha_metrics)){
   a_metric <- alpha_metrics[a]
@@ -51,9 +53,6 @@ for(a in 1:length(alpha_metrics)){
   file_name <- paste(alpha_dir, a_metric, "_by_time.pdf", sep="")
   save_plot(file_name, plot1, base_aspect_ratio = 2)
 }
-
-
-
 
 ##to compare alphas##
 alpha_func2 <- function(alpha_test, control_list, test_set, alpha_dir, color_by){
@@ -111,6 +110,7 @@ alpha_func2 <- function(alpha_test, control_list, test_set, alpha_dir, color_by)
 color_by <- "Treatment"
 #set output directory
 alpha_dir <- paste(main_fp, "alpha_div/pbx_con_fungal/", sep='/')
+dir.create(alpha_dir)
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -126,6 +126,7 @@ alpha_func2(alpha_test, control_list, test_set, alpha_dir, color_by)
 #### Test ABX vs Control, account for body site and day####
 #set output directory
 alpha_dir <- paste(main_fp, "alpha_div/abx_con_fungal/", sep='/')
+dir.create(alpha_dir)
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -142,6 +143,7 @@ alpha_func2(alpha_test, control_list, test_set, alpha_dir, color_by)
 color_by <- "Treatment"
 #set output directory
 alpha_dir <- paste(main_fp, "alpha_div/pbx_abx_fungal/", sep='/')
+dir.create(alpha_dir)
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)
@@ -157,6 +159,7 @@ alpha_func2(alpha_test, control_list, test_set, alpha_dir, color_by)
 ###Test abx in general or pbx in general against general controls###
 #set output directory
 alpha_dir <- paste(main_fp, "alpha_div/general_abx_pbx_con_fungal/", sep='/')
+dir.create(alpha_dir)
 #make stats file
 file_name <- paste(alpha_dir, "Alpha_Stats.txt", sep='')
 sink(file_name)

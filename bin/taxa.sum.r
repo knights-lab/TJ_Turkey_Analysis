@@ -59,6 +59,49 @@ otu <- sweep(otu,2,colSums(otu),`/`)
 taxa_dir <- paste(main_fp, "taxa_sum/", sep='/')
 
 cutoff <- 0.05
+# Creat one plot for just no-inoc controls, one plot per day
+for(k in 1:length(Bodysites)){
+  body_test <- Bodysites[[k]]
+  body <- names(Bodysites[k])
+  union1 <- intersect(body_test, NoInoc)
+  days_test <- c("D03", "D06", "D13")
+  plot_list <- list()
+  #Make plot
+  for(d in 1:length(days_test)){
+    plot_title <- body
+    this <- days_test[d]
+    union <- intersect(union1, Days[[d]])
+    otu1 <- make_taxa_sums(otu, union, cutoff)
+    otu1$Treatment2 <- factor(otu1$Treatment2, levels= c("No_Inoc"))
+    otu1$Collection_Day <- as.character(otu1$Collection_Day)
+    taxa_plot <- ggplot(otu1, aes(x = SampleID , y = Relative_Abundance)) + 
+      geom_bar(stat="identity",aes(fill=Taxa)) +
+      facet_wrap(facets=~Collection_Day, scales = "free_x", nrow=1) +
+      theme_bw() +
+      theme(panel.background = element_blank(), 
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            legend.title = element_blank(),
+            legend.key.size = unit(0.2, "in"),
+            legend.text = element_text(size=5),
+            legend.position = 'bottom',
+            axis.text = element_text(size=5),
+            axis.text.x = element_blank(),
+            axis.title = element_text(size=8)) + 
+      guides(fill=F) +
+      scale_fill_manual(name= names(taxa_cols), values= taxa_cols)
+  plot_list[[this]] <- taxa_plot
+  }
+  plot_all <- plot_grid(plot_list[[1]], plot_list[[2]], plot_list[[3]], ncol=3)
+  #assign pdf name for plot
+  name <- paste(body, ".pdf", sep='')
+  file_path <- paste(taxa_dir, name, sep='')
+  pdf(file_path, height=4,width=11)
+  print(plot_all)
+  dev.off()
+}
+
+
 
 for(k in 1:length(Bodysites)){
   body_test <- Bodysites[[k]]
@@ -67,6 +110,7 @@ for(k in 1:length(Bodysites)){
     day_test <- Days[[m]]
     day <- names(Days[m])
     union <- intersect(body_test, day_test)
+    union <- intersect(union, colnames(otu))
     otu1 <- make_taxa_sums(otu, union, cutoff)
     otu1$Treatment2 <- factor(otu1$Treatment2, levels= c("No_Inoc", "GroGel", "TJPbx", "FMB11", "BMD"))
     
@@ -100,6 +144,7 @@ for(k in 1:length(Bodysites)){
 }
 
 union <- samples_no_con
+union <- intersect(union, colnames(otu))
 cutoff <- 0.05
 otu1 <- make_taxa_sums(otu, union, cutoff)
 
@@ -131,7 +176,9 @@ dev.off()
 cutoff <- 0.05
 for(i in 1:length(Pbx)){
   treatment_plot <- Treatments[[i]]
+  treatment_plot <- intersect(treatment_plot, colnames(otu))
   input_plot <- Inputs[[i]]
+  input_plot <- intersect(input_plot, colnames(otu))
   otu1 <- make_taxa_sums(otu, treatment_plot, cutoff)
   otu2 <- make_taxa_sums(otu, input_plot, cutoff)
   

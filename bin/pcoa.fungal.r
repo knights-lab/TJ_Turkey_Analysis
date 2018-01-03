@@ -40,6 +40,8 @@ for(k in 1:length(Days_f)){
   
 plot3 <- plot_grid(plot_list[[1]], plot_list[[2]], plot_list[[3]],
                       labels=c(names(plot_list)), ncol = 3)
+dir.create(paste(main_fp, "beta_div/PCoA_Day_fungal", sep="/"))
+dir.create(paste(main_fp, "beta_div/PCoa_Day_fungal/Days_fungal", sep='/'))
 plot_this <- paste(main_fp, "beta_div/PCoa_Day_fungal/Days_fungal.pdf", sep='/')
 save_plot(plot_this, plot3,
             ncol = 3,
