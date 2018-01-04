@@ -387,12 +387,14 @@ i_t2$abx <- as.numeric(as.character(i_t2$abx))
 i_t2$Group.2 <- factor(i_t2$Group.2, levels = c("BMD", "No_Inoc", "TJPbx", "FMB11", "GroGel"))
 pathways_diff <- ggplot(i_t2) + 
   geom_tile(aes(x = Group.2, y = Group.1, fill = value)) +
-  scale_fill_gradientn("CLR RA", 
-                       breaks = seq(from = min(i_t2$value), to = max(i_t2$value), by = 1), 
-                       colours = c("#FEBF2C",  "#C3003A",  "#551B44"), 
+  scale_fill_gradientn("CLR RA", name="Normalized\nExpression",
+                       breaks = seq(from = min(i_t2$value), to = max(i_t2$value), by = 9000), 
+                       colours = c("#e2ecd5", "#99be6c", "#6ea32e", "#2e6ea3"), 
                        limits = c(min(i_t2$value),max(i_t2$value))) +
   geom_text(data = i_t2[i_t2$abx < 0.05,], 
-            aes(x = 1, y = Group.1, label = "*"), col = "white", size = 4)
+            aes(x = 1, y = Group.1, label = "*"), col = "white", size = 4) +
+  labs(x= "Treatment", y="Reactome Pathway") +
+  scale_x_discrete(labels=c("BMD" = "BMD", "No_Inoc" = "Control", "TJPbx"="T-Pbx", "FMB11"="FMB11", "GroGel"= "Prebx"))
 pdf(paste(main_fp, "/Supplemental_Figure7.pdf", sep=""), width=12, height=25)
 pathways_diff
 dev.off()
