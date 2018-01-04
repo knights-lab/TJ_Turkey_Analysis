@@ -455,7 +455,7 @@ test_this <- melt(new_ft)
 f_map$Var1 <- f_map$SampleID
 test_this2 <- merge(test_this, f_map, by="Var1")
 test_this2$Treatment2 <- factor(test_this2$Treatment2, levels= c("No_Inoc", "BMD", "TJPbx", "FMB11", "GroGel"))
-taxa_heat <- heat(test_this2, "Var1", "Var2", fill = "value") +
+taxa_heat <- heat(test_this2, "Var1", "Var2", fill = "value", colours=c("#fef8e9", "#fee5aa", "#FEBF2C",  "#C3003A",  "#551B44")) +
   facet_grid(.~Collection_Day + Treatment2, scales="free", space = "free") +
   theme(axis.text.x=element_blank())
 
