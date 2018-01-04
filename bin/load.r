@@ -58,7 +58,7 @@ remove <- otu_table[grep("Zea",otu_table$taxonomy), "taxonomy"]
 remove1 <- otu_table[grep("Streptophyta",otu_table$taxonomy), "taxonomy"]
 remove2 <- otu_table[grep("Chloroplast",otu_table$taxonomy), "taxonomy"]
 
-remove <- c(remove, remove1,)
+remove <- c(remove, remove1)
 otu_table <- otu_table[!otu_table$taxonomy %in% remove,]
 taxonomy <- as.data.frame(cbind(otu_table[,1], otu_table[,ncol(otu_table)]))
 rownames(taxonomy) <- taxonomy$V1

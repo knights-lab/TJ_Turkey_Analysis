@@ -97,10 +97,10 @@ for(i in 1:length(I_C)){
   
   plot_list[[names(I_C)[i]]] <- plot1
   
-  sink(paste(main_fp, "sil_widths.txt", sep='/'), append=T)
-  print(names(I_C)[i])
-  print(sil_list)
-  sink()
+  #sink(paste(main_fp, "sil_widths.txt", sep='/'), append=T)
+  #print(names(I_C)[i])
+  #print(sil_list)
+  #sink()
   
   sink(paste(main_fp, "treatment_pairwise_centroids.txt", sep="/"), append =T)
   print(pair_ad_list)

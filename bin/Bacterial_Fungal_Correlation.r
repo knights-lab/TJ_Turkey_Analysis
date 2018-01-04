@@ -30,6 +30,7 @@ keep_f <- fungal_otu3[rowSums(fungal_otu3 > 0) > 5, rownames(day6_f)]
 keep_f <- intersect(rownames(keep_f), colnames(day6_f))
 day6_f <- day6_f[rowSums(day6_f > 0) > 1, keep_f]
 test <- t(day6_f)
+
 #Fungal distances
 beta_table <- as.matrix(dist(t(test)))
 
@@ -42,6 +43,13 @@ otu_test <- read.table("data/Turkey_10k_Taxa.txt",
                        skip=1, 
                        as.is=T, 
                        check.names=F, row=1)
+#remove taxa that are plants
+remove <- as.character(taxonomy[grep("zea",taxonomy$V2), "V1"])
+remove1 <- as.character(taxonomy[grep("Streptophyta",taxonomy$V2), "V1"])
+remove2 <- as.character(taxonomy[grep("Chloroplast",taxonomy$V2), "V1"])
+remove_these <- c(remove, remove1, remove2)
+otu_test <- otu_test[!rownames(otu_test) %in% remove_these,]
+
 tree = read_tree_greengenes('data/97_otus.tree')
 ileum_6_bacteria <- intersect(rownames(mapping[Days[[2]],]), Ileum)
 
@@ -63,10 +71,15 @@ overlap_samples <- intersect(rownames(uni1), rownames(beta_table))
 #Generate PCoAs
 PCOA_b <- pcoa(uni1[overlap_samples, overlap_samples])$vectors
 PCOA_f <- pcoa(beta_table[overlap_samples,overlap_samples])$vectors
-
+var_exp <- pcoa(beta_table[overlap_samples,overlap_samples])$values
 
 pro <- procrustes(PCOA_b, PCOA_f)
-pro2 <- protest(PCOA_b, PCOA_f, permutations = how(nperm = 999))
+pro <- procrustes(PCOA_b[,1:3], PCOA_f[,1:3])
+summary(pro)
+pro2 <- protest(PCOA_b[,1:3], PCOA_f[,1:3], permutations = 999)
+sink(paste(main_fp, "/Figure6_mantel.txt", sep=""))
+print(mantel(uni1[overlap_samples, overlap_samples], beta_table[overlap_samples,overlap_samples], method="pearson", permutations=999))
+sink()
 
 bact_pro <- data.frame(pro$X)
 fungi_pro <- data.frame(pro$Yrot)
@@ -83,33 +96,38 @@ bact_pro$sample <- c(1:35)
 fungi_pro$sample <- c(1:35)
 
 print(paste( "P=", pro2$signif))
+print(paste( "M=", pro2$ss))
+p_val <- pro2$signif
+m_val <- pro2$ss
 
 PCOA <- rbind(bact_pro, fungi_pro)
 PCOA$SampleID <- rownames(PCOA)
 colnames(PCOA) <- gsub("Axis.", "PC", colnames(PCOA))
 
-pro_f_b <- ggplot(PCOA) +
-  geom_point(size = 4, aes_string(x = "PC1", y = "PC2", color = "treatment", shape="type")) +
-  theme_bw() +
+cols_pro <- c("#D95F02", "#1B9E77", "#7570B3", "#E7298A", "#E6AB02")
+PCOA$treatment <- factor(PCOA$treatment, levels=c("BMD", "NOI", "TJP", "FMB", "GRG"))
+pro_b_f <- ggplot(PCOA) +
+  geom_point(size = 3, aes_string(x = "PC1", y = "PC2", color = "treatment", shape="type")) +
   geom_line(aes(x= PC1, y=PC2, group=sample, color=treatment)) +
-  theme(panel.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 10),
+  scale_shape_manual(values=c(16, 15)) +
+  theme(plot.title = element_text(size = 10),
         legend.title = element_blank(),
         legend.key.size = unit(0.2, "in"),
         legend.text = element_text(size=5),
         legend.position = 'bottom',
         axis.text = element_text(size=5),
         axis.title = element_text(size=8)) +
-  scale_color_manual(values=cols2(5)) +
-  guides(color=guide_legend(nrow=3))
+  scale_color_manual(values=cols_pro) +
+  annotate("text", x=0.2, y=0.25, label= paste("P=", p_val), size=2) +
+  annotate("text", x=0.2, y=0.20, label= paste("M2=", round(m_val, digits=3)), size=2) +
+  #coord_fixed(xlim = c(-0.32, 0.41), ylim = c(-0.32, 0.41)) +
+  labs(x=paste("PC1 (", round(var_exp$Relative_eig[1], digits=3)*100, "%)", sep=""), y= paste("PC2 (", round(var_exp$Relative_eig[2], digits=3)*100, "%)", sep=""))
 
 
 ######################################################################
 #Are fungi correlated with bacteria?
 f_otu <- data.frame(t(test[, overlap_samples]))
-b_otu <- data.frame(CLR_otutable[overlap_samples,])
+b_otu <- data.frame(CLR_otutable[overlap_samples,!colnames(CLR_otutable) %in% remove_these])
 colnames(b_otu) <- gsub("X", "", colnames(b_otu))
 
 #Within BMD test for correlation
@@ -154,8 +172,9 @@ taxa$taxa <- gsub("_1", "", taxa$taxa)
 colnames(b_otu_ABX) <- taxa$taxa
 colnames(f_otu_ABX) <- ftaxonomy3[colnames(f_otu_ABX), "taxonomy7"]
 
-correlation.table <- associate(f_otu_ABX, b_otu_ABX, method = "pearson", mode = "table", p.adj.threshold = 0.1, n.signif = 1)
-within_abx <- heat(correlation.table, "X1", "X2", fill = "Correlation", p.adj.threshold = 0.1, star='p.adj', star.size=1) 
+correlation.tableAB <- associate(f_otu_ABX, b_otu_ABX, method = "pearson", mode = "table", p.adj.threshold = 0.5, n.signif = 1)
+within_abx <- heat(correlation.tableAB, "X1", "X2", fill = "Correlation", p.adj.threshold = 0.25, star='p.adj', star.size=3,
+                   colours=c("purple4", "#5E3C99", "white", "#f5bf99", "#e66101")) 
 
 #Within TJPbx test for correlation
 f_otu_ABX <- f_otu[rownames(f_otu)%in% TJPbx,]
@@ -201,8 +220,9 @@ colnames(b_otu_ABX) <- taxa$taxa
 
 colnames(f_otu_ABX) <- ftaxonomy3[colnames(f_otu_ABX), "taxonomy7"]
 
-correlation.table <- associate(f_otu_ABX, b_otu_ABX, method = "pearson", mode = "table", p.adj.threshold = 0.1, n.signif = 1)
-within_pbx <- heat(correlation.table, "X1", "X2", fill = "Correlation", p.adj.threshold = 0.1, star='p.adj', star.size=1) 
+correlation.tableTP <- associate(f_otu_ABX, b_otu_ABX, method = "pearson", mode = "table", p.adj.threshold = 0.5, n.signif = 1)
+within_pbx <- heat(correlation.tableTP, "X1", "X2", fill = "Correlation", p.adj.threshold = 0.25, star='p.adj', star.size=3, 
+                   colours=c("purple4", "#5E3C99", "white", "#f5bf99", "#e66101")) 
 
 
 #Within Control1 test for correlation
@@ -284,3 +304,10 @@ dat <- data.frame(dat)
 #Within Control2 test for correlation - can't do bc there are only two GroGel in B
 f_otu_ABX <- f_otu[rownames(f_otu)%in% GroGel,]
 b_otu_ABX <- b_otu[rownames(b_otu)%in% GroGel,]
+
+##############
+#Compile figure
+fungal_bacteria <- plot_grid(pro_b_f, within_abx, within_pbx, ncol=3, rel_widths = c(1,1.8,1.8))
+pdf(paste(main_fp, "/Supplemental_figure6.pdf", sep=""), width=20, height=5, useDingbats = F)
+fungal_bacteria
+dev.off()

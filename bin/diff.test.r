@@ -120,6 +120,16 @@ test.otu.features<-function(otu, response, sig.level)
   list(features=diff.features, pvals=adj.pvals)
 }
 
+test.otu.features2<-function(otu, response, sig.level)
+{
+  pvals <- apply(otu, 2, function(feature) 
+    (t.test(feature~response, data.frame(feature=feature, response=response)))$p.value)
+  adj.pvals <- p.adjust(pvals, "fdr")
+  
+  diff.features <- names(adj.pvals)[adj.pvals <= sig.level & !is.na(adj.pvals)]
+  list(features=diff.features, pvals=adj.pvals)
+}
+
 # #set output dir
 # diff_dir <- paste(main_fp, "diff_taxa/antibiotics", sep='/')
 # 
